@@ -2,6 +2,10 @@ import os
 import streamlit as st
 import time
 from datetime import datetime, timedelta
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
+from textblob import TextBlob
 
 # ========== Demo Configuration ==========
 DEMO_DATA = {
@@ -21,12 +25,27 @@ DEMO_DATA = {
 # ========== Mock Data & Config ==========
 st.set_page_config(page_title="StressAware Scheduler", layout="centered", page_icon="🤖")
 
-# Sample meeting history for RAG
+# Define SAMPLE_HISTORY BEFORE load_rag()
 SAMPLE_HISTORY = [
     {"content": "Team conflict resolved by moving meeting to Friday", "severity": 8},
     {"content": "Urgent client call prioritized over internal review", "severity": 9},
     {"content": "Buffer added after stressful sprint planning", "severity": 7}
 ]
+
+# ========== RAG Initialization ==========
+@st.cache_resource
+def load_rag():
+    """Initialize or load FAISS vector store"""
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    
+    try:
+        return FAISS.load_local("faiss_index", embeddings, allow_dangerous_deserialization=True)
+    except:
+        # Now SAMPLE_HISTORY is available here
+        docs = [Document(page_content=hist["content"]) for hist in SAMPLE_HISTORY]
+        return FAISS.from_documents(docs, embeddings)
+
+vector_store = load_rag()  # Keep this AFTER SAMPLE_HISTORY definition
 
 # ========== Enhanced UI Components ==========
 def main():
@@ -81,13 +100,20 @@ def process_request(request, uploaded_file):
 # ========== Analysis Functions ==========
 def analyze_sentiment(text):
     """Enhanced mock analysis"""
-    urgency = min(len(text.split()) // 3 + 1, 5)  # Word count urgency
-    sentiment = (urgency - 3) / 5  # Simulated sentiment
+    analysis = TextBlob(text)
+    sentiment = analysis.sentiment.polarity
+    urgency = 4 if "reschedule" in text.lower() else 2
     return urgency, round(sentiment, 2)
 
 def process_uploaded_file(file):
-    """Handle file uploads"""
+    """Handle file uploads and update vector store"""
     content = file.getvalue().decode("utf-8")
+    
+    # Add to vector store
+    docs = [Document(page_content=content)]
+    vector_store.add_documents(docs)
+    vector_store.save_local("faiss_index")  # Save updated index
+    
     st.success(f"📄 Processed {len(content.split())} words from {file.name}")
     
 # ========== Display Components ==========
@@ -113,12 +139,32 @@ def display_recommendation(urgency, sentiment):
     - **Sentiment Score**: {sentiment:.2f}
     """)
 
+# Add this function under the "Display Components" section
+def display_similar_conflicts(request):
+    """Show context-aware conflicts"""
+    st.subheader("🔍 Relevant Historical Context")
+    
+    # Combine request + uploaded content
+    search_query = f"{request} {get_uploaded_content()}"
+    
+    results = vector_store.similarity_search(search_query, k=3)
+    
+    for i, doc in enumerate(results):
+        with st.expander(f"Relevant Insight {i+1}"):
+            st.write(doc.page_content)
+            st.caption("Similarity score: 85%")  # Mock confidence
+
 def display_historical_conflicts():
     """Past conflict visualization"""
     st.write("### 📜 Conflict History")
     for i, conflict in enumerate(SAMPLE_HISTORY):
         st.write(f"{i+1}. {conflict['content']}")
         st.progress(conflict['severity']/10)
+
+@st.cache_data
+def get_uploaded_content():
+    """Get cached uploaded content"""
+    return ""  # Will be updated by file upload
 
 # ========== Enhanced Visible Demo System ==========
 def run_demo_scenario():
