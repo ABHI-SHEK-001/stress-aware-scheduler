@@ -1,0 +1,7 @@
+Alice: Hey, did you get a chance to review the report?
+Bob: Not yet. I’ve been buried in other tasks.
+Alice: We have a client meeting tomorrow at 3pm. Let’s finalize the report by noon.
+Bob: Got it. I’ll start on it tonight.
+Alice: Thanks! Also, FYI, the devs are frustrated with the API outages.
+...
+(copy this kind of dialogue to make it ~1000+ characters)

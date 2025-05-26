@@ -1,0 +1,9 @@
+ langchain
+ faiss-cpu
+ python-dotenv
+ openai
+ textblob
+ langchain-community
+ tiktoken
+ sentence-transformers
+ langchain_huggingface
