@@ -113,6 +113,22 @@ def display_recommendation(urgency, sentiment):
     - **Sentiment Score**: {sentiment:.2f}
     """)
 
+# Add this function under the "Display Components" section
+def display_similar_conflicts(request):
+    """Show RAG-based similar conflicts"""
+    st.subheader("🔍 Similar Past Conflicts")
+    
+    # Perform similarity search
+    results = vector_store.similarity_search(request, k=3)
+    
+    # Display results
+    for i, doc in enumerate(results):
+        with st.container(border=True):
+            cols = st.columns([1, 4])
+            cols[0].write(f"**Conflict {i+1}**")
+            cols[1].write(doc.page_content[:200] + "...")
+
+
 def display_historical_conflicts():
     """Past conflict visualization"""
     st.write("### 📜 Conflict History")
