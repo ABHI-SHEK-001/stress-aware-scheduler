@@ -1,0 +1,35 @@
+# Navigate to your project root directory
+cd stress-aware-scheduler
+
+# Create .gitignore with essential rules
+echo "# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.python-version
+*.swp
+
+# Environment files
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Build/compiled files
+build/
+dist/
+*.egg-info/
+
+# Streamlit
+.streamlit/
+
+# OS files
+.DS_Store
+Thumbs.db" > .gitignore

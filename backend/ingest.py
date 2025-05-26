@@ -42,7 +42,7 @@ def ingest_data(data_dir: str, index_path: str):
         print("⚠️ No chunks were created. Make sure your input files have enough content.")
         return
 
-    embeddings = HuggingFaceEmbeddings()
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vector_store = FAISS.from_documents(chunks, embeddings)
     vector_store.save_local(index_path)
     print(f"✅ Ingested {len(chunks)} chunks into FAISS at {index_path}")
